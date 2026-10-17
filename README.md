@@ -10,6 +10,16 @@ Unofficial Go client for the [Lovable API](https://docs.lovable.dev/integrations
 
 The package is `lovable`, in the repository root. Everything in `client.gen.go` is generated. Don't edit it by hand, regenerate it.
 
+## Contents
+
+- [Install](#install)
+- [Usage](#usage)
+- [Auth](#auth)
+- [Regenerating](#regenerating)
+- [Agent integrations](#agent-integrations)
+- [Development](#development)
+- [License](#license)
+
 ## Install
 
 ```sh
@@ -65,6 +75,8 @@ func main() {
 
 The same code is in `example_test.go`, so `make test` checks that it compiles.
 
+The full API, with the spec's descriptions as doc comments, is in the [Go reference](https://pkg.go.dev/github.com/psyb0t/go-lovable) and in `go doc github.com/psyb0t/go-lovable`.
+
 Required nullable fields use `nullable.Nullable[T]`: `IsNull()` checks JSON null, and `Get()` returns a value and an error. Optional request fields are pointers. HTTP errors do not produce a Go error by themselves: check `StatusCode()`, the typed status field and `Body`. Use `WithHTTPClient` to set timeouts.
 
 ## Auth
@@ -83,7 +95,7 @@ auth := lovable.WithRequestEditorFn(
 )
 ```
 
-The base URL is `https://api.lovable.dev`. Generated paths contain `/v1`, so leave it out of the base URL. Set the optional `LovableVersion` operation parameter or `Lovable-Version` header to `2026-09-11` to select the spec's stable version explicitly. List operations use `limit` and an opaque `cursor`. Pass `Pagination.NextCursor` as `Cursor` until `Pagination.HasMore` is false, keeping the same filters. `ListProjects` requires a `WorkspaceId` slice. The client does not paginate or retry automatically. Honor `Retry-After` on 429 responses. Publishing returns 202; poll `GetDeploymentWithResponse` with backoff and a bounded timeout.
+The base URL is `https://api.lovable.dev`. Generated paths contain `/v1`, so leave it out of the base URL. Set the optional `LovableVersion` operation parameter or `Lovable-Version` header to a stable version date (`YYYY-MM-DD`) to pin the API version; without it the server uses the oldest supported stable version. List operations use `limit` and an opaque `cursor`. Pass `Pagination.NextCursor` as `Cursor` until `Pagination.HasMore` is false, keeping the same filters. `ListProjects` requires a `WorkspaceId` slice. The client does not paginate or retry automatically. Honor `Retry-After` on 429 responses. Publishing returns 202; poll `GetDeploymentWithResponse` with backoff and a bounded timeout.
 
 ## Regenerating
 

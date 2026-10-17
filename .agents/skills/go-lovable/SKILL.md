@@ -1,6 +1,7 @@
 ---
 name: go-lovable
-description: Unofficial Go client for the Lovable API. Use when Go code needs to manage Lovable projects, publishing, deployment status, preview embed URLs, analytics, security scans, personal data findings, workspaces, groups or members, or already imports github.com/psyb0t/go-lovable.
+description: Unofficial Go client for the Lovable API, generated with oapi-codegen. Package lovable (github.com/psyb0t/go-lovable) provides lovable.NewClientWithResponses with a typed ...WithResponse method for every endpoint, authenticated with a Lovable-API-Key header or Bearer token. Use when Go code needs to manage Lovable projects, publishing, deployment status, preview embed URLs, analytics, security scans, personal data findings, workspaces, groups or members, or already imports github.com/psyb0t/go-lovable.
+license: MIT
 homepage: https://github.com/psyb0t/go-lovable
 user-invocable: true
 metadata:
@@ -9,8 +10,6 @@ metadata:
     requires:
       bins:
         - go
-      env:
-        - LOVABLE_API_KEY
 permissions:
   filesystem: "Guides edits to the Go source of the current project. The library reads and writes no files."
   shell: "The Go toolchain to add and compile the dependency."
@@ -23,7 +22,7 @@ Unofficial, typed Go client for the Lovable API, in package `lovable` at the mod
 
 Read [references/setup.md](references/setup.md) for install, auth, the operation list and response handling. The repository's `example_test.go` holds the compiled README example.
 
-## Security and safety
+## Security & safety
 
 - Load `LOVABLE_API_KEY` from the environment. Set `Lovable-API-Key` with `lovable.WithRequestEditorFn`; the spec also accepts `Authorization: Bearer <key>`. Never log credentials or request authorization headers.
 - Use `https://api.lovable.dev` as the base URL. Generated paths already contain `/v1`.
@@ -42,6 +41,20 @@ Read [references/setup.md](references/setup.md) for install, auth, the operation
 - The code is not Go, or the user needs an official provider-maintained SDK.
 - The task is to change this generated client. Read `AGENTS.md` for that workflow.
 - The task needs app generation or chat operations absent from the downloaded public spec. Do not invent endpoints.
+
+## Finding endpoints and types
+
+The reference covers a few calls. Every operation in the spec has a generated method, and the spec's descriptions are on them as Go doc comments. Look names and fields up instead of guessing. After `go get github.com/psyb0t/go-lovable`, from inside your module:
+
+```bash
+go doc github.com/psyb0t/go-lovable ClientWithResponsesInterface  # every endpoint method
+go doc github.com/psyb0t/go-lovable ListProjectsParams            # one method, params type or model
+go doc -all github.com/psyb0t/go-lovable                          # the whole package
+```
+
+The same documentation is at https://pkg.go.dev/github.com/psyb0t/go-lovable.
+
+Method names come from the spec's operation IDs. `<OperationId>WithResponse` takes the context, then the path parameters in order, then `*<OperationId>Params` when the operation has query or header parameters, then the request body when it has one. The `JSON200` field (or `JSON202` and so on, per declared status) holds the decoded body; it is nil for any other status.
 
 ## Usage
 
