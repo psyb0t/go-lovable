@@ -1,0 +1,20 @@
+{
+  "name": "go-lovable",
+  "version": "0.1.0",
+  "description": "Unofficial Go client for the Lovable API: projects, publishing, analytics, security scans, workspaces, groups and members, generated from the public OpenAPI spec.",
+  "author": {
+    "name": "psyb0t",
+    "url": "https://github.com/psyb0t"
+  },
+  "homepage": "https://github.com/psyb0t/go-lovable",
+  "repository": "https://github.com/psyb0t/go-lovable",
+  "license": "MIT",
+  "keywords": [
+    "lovable",
+    "ai-app-builder",
+    "api-client",
+    "go-library",
+    "openapi"
+  ],
+  "skills": "./skills/"
+}
