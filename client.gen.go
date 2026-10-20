@@ -2038,7 +2038,7 @@ type WorkspaceInsightsProject struct {
 	// Example: 2026-01-15T09:30:00Z
 	LastSecurityScanAt nullable.Nullable[time.Time] `json:"last_security_scan_at"`
 
-	// MatchedReason Condition matching the finding_type_id filter when exactly one finding type is selected; null otherwise. It can be missing from review_priority_explanation when a more specific condition is displayed there.
+	// MatchedReason Condition matching the finding_type_id filter when exactly one finding type is selected; null otherwise.
 	MatchedReason WorkspaceInsightsReason `json:"matched_reason"`
 
 	// MessageCount Agent message usage charged to credit funds for this project during the current UTC calendar month.
@@ -2768,7 +2768,7 @@ type ListSecurityInsightProjectsParams struct {
 	// ReviewPriority Filter by Security Center review priority. Repeat to match any selected priority; unscored matches projects not yet scored. Omit to include every project.
 	ReviewPriority *[]ListSecurityInsightProjectsParamsReviewPriority `form:"review_priority,omitempty" json:"review_priority,omitempty"`
 
-	// FindingTypeId Finding type IDs returned by GET /v1/workspaces/{workspace_id}/security-center/insights. Repeat to match any selected type. Unknown IDs return 400. Types that depend on personal data detection return 402 when that feature is not available on the workspace plan.
+	// FindingTypeId Finding type IDs returned by GET /v1/workspaces/{workspace_id}/security-center/insights. Finding filters use the same category rules as project_count in that response. A project matching a more specific related type is excluded from the broader type. Repeat to match any selected type. Unknown IDs return 400. Types that depend on personal data detection return 402 when that feature is not available on the workspace plan.
 	FindingTypeId *[]string `form:"finding_type_id,omitempty" json:"finding_type_id,omitempty"`
 
 	// LovableVersion Stable API version to serve, as a YYYY-MM-DD date. Omit for the oldest supported stable version, currently 2026-09-11.

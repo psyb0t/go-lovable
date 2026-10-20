@@ -2,6 +2,11 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v0.1.2, 2026-10-20
+
+- Documentation only. The `WorkspaceInsightsProject.MatchedReason` comment no longer says the value can be missing from `review_priority_explanation`.
+- The `ListSecurityInsightProjectsParams.FindingTypeId` comment now says finding filters use the same category rules as `project_count`, and that a project matching a more specific related type is excluded from the broader type.
+
 ## v0.1.1, 2026-10-17
 
 - Documentation only. The agent skill explains how to look up every endpoint, parameter and model with `go doc` or on pkg.go.dev, and declares its license.
