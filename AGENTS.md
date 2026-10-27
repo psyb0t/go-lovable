@@ -10,7 +10,7 @@ One generated package, `lovable`, at the module root, driven by `gen.go`:
 
 ## Stack
 
-- Go 1.26.9.
+- Go 1.26.10.
 - oapi-codegen, pinned as a `tool` dependency in `go.mod`.
 - Runtime: `github.com/oapi-codegen/runtime` and `github.com/oapi-codegen/nullable`.
 - The patch tool uses `gopkg.in/yaml.v3` and `ctxerrors`.
