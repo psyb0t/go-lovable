@@ -20,6 +20,7 @@ const (
 	exampleKeyword     = "example"
 	examplesKeyword    = "examples"
 	descriptionKeyword = "description"
+	webhooksKeyword    = "webhooks"
 )
 
 func main() {
@@ -40,11 +41,9 @@ func run() error {
 		return ctxerrors.Wrap(err, "decode source spec")
 	}
 
-	if err := patch(spec); err != nil {
+	if err := convert(spec); err != nil {
 		return ctxerrors.Wrap(err, "convert OpenAPI schemas")
 	}
-
-	spec["openapi"] = "3.0.3"
 
 	data, err = yaml.Marshal(spec)
 	if err != nil {
@@ -54,6 +53,20 @@ func run() error {
 	if err := os.WriteFile(outputPath, data, outputMode); err != nil {
 		return ctxerrors.Wrap(err, "write patched spec")
 	}
+
+	return nil
+}
+
+func convert(spec map[string]any) error {
+	if err := patch(spec); err != nil {
+		return err
+	}
+
+	// oapi-codegen emits webhook request body aliases without the schemas
+	// they point to, and the client never calls webhooks.
+	delete(spec, webhooksKeyword)
+
+	spec["openapi"] = "3.0.3"
 
 	return nil
 }

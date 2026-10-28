@@ -2,6 +2,15 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v0.2.0, 2026-10-28
+
+- Added `ListProjectCollaborators` and `ListProjectCollaboratorsWithResponse`, with `ListProjectCollaboratorsParams`, `ListProjectCollaboratorsResponse`, `NewListProjectCollaboratorsRequest` and `ParseListProjectCollaboratorsResponse`. They list the collaborators of a project.
+- Added the types `ProjectCollaborator`, `ProjectCollaboratorPage` and `ProjectCollaboratorAccessLevel`, with the constants `ProjectCollaboratorAccessLevelNone`, `Read`, `Write`, `Admin` and `Owner`.
+- `ClientInterface` and `ClientWithResponsesInterface` gained the new methods, so any type that implements them, such as a test mock, must add them.
+- Added `WorkspaceMember.Email` and `WorkspaceMember.JoinedAt`.
+- Added `WorkspaceMemberDetails.Role` and the `WorkspaceMemberDetailsRole` type, with the constants `WorkspaceMemberDetailsRoleWorkspaceOwner`, `WorkspaceAdmin`, `WorkspaceEditor`, `WorkspaceViewer` and `ExternalCollaborator`. The API may add more values.
+- The spec patch tool now drops the `webhooks` section before generation. oapi-codegen produced webhook aliases without their target types, so the client did not compile. The client never calls webhooks.
+
 ## v0.1.4, 2026-10-28
 
 - Updated Semgrep in the development image to 1.182.1 and refreshed its locked dependencies. certifi 2026.10.23 drops the emSign root CAs whose intermediate keys were compromised (GHSA-6q48-6c7w-9gw2).

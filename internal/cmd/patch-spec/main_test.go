@@ -100,3 +100,19 @@ example:
 		})
 	}
 }
+
+func TestConvertDropsWebhooks(t *testing.T) {
+	t.Parallel()
+
+	spec := map[string]any{
+		"openapi":  "3.1.0",
+		"paths":    map[string]any{},
+		"webhooks": map[string]any{"project.created.v1": map[string]any{}},
+	}
+
+	require.NoError(t, convert(spec))
+	assert.Equal(t, map[string]any{
+		"openapi": "3.0.3",
+		"paths":   map[string]any{},
+	}, spec)
+}

@@ -166,6 +166,33 @@ func (e ProjectVisibility) Valid() bool {
 	}
 }
 
+// Defines values for ProjectCollaboratorAccessLevel.
+const (
+	ProjectCollaboratorAccessLevelAdmin ProjectCollaboratorAccessLevel = "admin"
+	ProjectCollaboratorAccessLevelNone  ProjectCollaboratorAccessLevel = "none"
+	ProjectCollaboratorAccessLevelOwner ProjectCollaboratorAccessLevel = "owner"
+	ProjectCollaboratorAccessLevelRead  ProjectCollaboratorAccessLevel = "read"
+	ProjectCollaboratorAccessLevelWrite ProjectCollaboratorAccessLevel = "write"
+)
+
+// Valid indicates whether the value is a known member of the ProjectCollaboratorAccessLevel enum.
+func (e ProjectCollaboratorAccessLevel) Valid() bool {
+	switch e {
+	case ProjectCollaboratorAccessLevelAdmin:
+		return true
+	case ProjectCollaboratorAccessLevelNone:
+		return true
+	case ProjectCollaboratorAccessLevelOwner:
+		return true
+	case ProjectCollaboratorAccessLevelRead:
+		return true
+	case ProjectCollaboratorAccessLevelWrite:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ProjectSummaryPublishAudience.
 const (
 	ProjectSummaryPublishAudienceCustom    ProjectSummaryPublishAudience = "custom"
@@ -688,6 +715,33 @@ const (
 func (e WorkspaceMemberType) Valid() bool {
 	switch e {
 	case WorkspaceMemberTypeUser:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WorkspaceMemberDetailsRole.
+const (
+	WorkspaceMemberDetailsRoleExternalCollaborator WorkspaceMemberDetailsRole = "external_collaborator"
+	WorkspaceMemberDetailsRoleWorkspaceAdmin       WorkspaceMemberDetailsRole = "workspace_admin"
+	WorkspaceMemberDetailsRoleWorkspaceEditor      WorkspaceMemberDetailsRole = "workspace_editor"
+	WorkspaceMemberDetailsRoleWorkspaceOwner       WorkspaceMemberDetailsRole = "workspace_owner"
+	WorkspaceMemberDetailsRoleWorkspaceViewer      WorkspaceMemberDetailsRole = "workspace_viewer"
+)
+
+// Valid indicates whether the value is a known member of the WorkspaceMemberDetailsRole enum.
+func (e WorkspaceMemberDetailsRole) Valid() bool {
+	switch e {
+	case WorkspaceMemberDetailsRoleExternalCollaborator:
+		return true
+	case WorkspaceMemberDetailsRoleWorkspaceAdmin:
+		return true
+	case WorkspaceMemberDetailsRoleWorkspaceEditor:
+		return true
+	case WorkspaceMemberDetailsRoleWorkspaceOwner:
+		return true
+	case WorkspaceMemberDetailsRoleWorkspaceViewer:
 		return true
 	default:
 		return false
@@ -1371,6 +1425,71 @@ type ProjectAnalyticsBreakdowns struct {
 	//
 	// Example: [{"label":"google.com","visitors":640}]
 	Sources []AnalyticsBreakdownItem `json:"sources"`
+}
+
+// ProjectCollaborator defines model for ProjectCollaborator.
+type ProjectCollaborator struct {
+	// AcceptedAt When the user accepted the project invitation. Null when no acceptance time is recorded, including pending invitations.
+	//
+	// Example: 2026-01-15T09:30:00Z
+	AcceptedAt nullable.Nullable[time.Time] `json:"accepted_at"`
+
+	// AccessLevel Access level granted to this collaborator.
+	//
+	// Example: admin
+	AccessLevel ProjectCollaboratorAccessLevel `json:"access_level"`
+
+	// Email Collaborator email address. Uses the workspace membership email when available, otherwise the account email. Null when unavailable.
+	//
+	// Example: jane.cooper@acme.com
+	Email nullable.Nullable[string] `json:"email"`
+
+	// InvitedAt When the user was invited to the project. Null when no invitation time is recorded.
+	//
+	// Example: 2026-01-15T09:30:00Z
+	InvitedAt nullable.Nullable[time.Time] `json:"invited_at"`
+
+	// InvitedByUserId User UUID of the inviter. Null when no inviter is recorded.
+	//
+	// Example: 404666c6-b533-5d2c-9768-c425bf40559b
+	InvitedByUserId nullable.Nullable[string] `json:"invited_by_user_id"`
+
+	// IsInternal Whether the collaborator belongs to the project's workspace or has an email address on a domain verified by that workspace. Internal refers to the customer's workspace, not Lovable staff.
+	//
+	// Example: true
+	IsInternal bool `json:"is_internal"`
+
+	// IsWorkspaceMember Whether the collaborator holds a workspace role in the project's workspace. False for users added only to projects, who appear in the workspace members list with the role external_collaborator.
+	//
+	// Example: true
+	IsWorkspaceMember bool `json:"is_workspace_member"`
+
+	// LastAccessedAt When the collaborator last accessed this project, from the most recent project or preview auth token mint (session-start granularity, not per page view). Any authenticated open of the project surface counts, including a published-site open by a collaborator. Always present, so an access review can tell 'never accessed' from a missing field. Null when no access is recorded under the current grant: an access that predates invited_at belongs to a revoked grant and reports as null.
+	//
+	// Example: 2026-01-20T14:05:00Z
+	LastAccessedAt nullable.Nullable[time.Time] `json:"last_accessed_at"`
+
+	// Name Collaborator display name, falling back to the email address. Null when neither is available.
+	//
+	// Example: Jane Cooper
+	Name nullable.Nullable[string] `json:"name"`
+
+	// UserId User UUID of the collaborator. Matches user_id in GET /v1/workspaces/{workspace_id}/members and the OAuth subject for clients using derived UUIDs.
+	//
+	// Example: 404666c6-b533-5d2c-9768-c425bf40559b
+	UserId string `json:"user_id"`
+}
+
+// ProjectCollaboratorAccessLevel Access level granted to this collaborator.
+//
+// Example: admin
+type ProjectCollaboratorAccessLevel string
+
+// ProjectCollaboratorPage defines model for ProjectCollaboratorPage.
+type ProjectCollaboratorPage struct {
+	// Data Items in this page. Empty when there are none.
+	Data       []ProjectCollaborator `json:"data"`
+	Pagination Pagination            `json:"pagination"`
 }
 
 // ProjectRealtimeAnalytics defines model for ProjectRealtimeAnalytics.
@@ -2268,6 +2387,16 @@ type WorkspaceInsightsSummary struct {
 
 // WorkspaceMember defines model for WorkspaceMember.
 type WorkspaceMember struct {
+	// Email Member email address in this workspace; null when unavailable.
+	//
+	// Example: jane.cooper@acme.com
+	Email nullable.Nullable[openapi_types.Email] `json:"email"`
+
+	// JoinedAt When the member joined the workspace; null when no join time is recorded.
+	//
+	// Example: 2026-01-15T09:30:00Z
+	JoinedAt nullable.Nullable[time.Time] `json:"joined_at"`
+
 	// Name Member display name; null when unavailable.
 	//
 	// Example: Jane Cooper
@@ -2311,6 +2440,11 @@ type WorkspaceMemberDetails struct {
 	// Example: Example Member
 	Name nullable.Nullable[string] `json:"name"`
 
+	// Role Workspace access role, with the same values as the member list. external_collaborator identifies a user with access to specific projects, rather than workspace membership. More values may be added; clients must tolerate unknown values.
+	//
+	// Example: workspace_admin
+	Role WorkspaceMemberDetailsRole `json:"role"`
+
 	// Type Identity type. Currently user; clients must tolerate unknown values.
 	//
 	// Example: user
@@ -2326,6 +2460,11 @@ type WorkspaceMemberDetails struct {
 	// Example: workspace_01jw3k9m2xq8r5v0c7d4e6f2gh
 	WorkspaceId string `json:"workspace_id"`
 }
+
+// WorkspaceMemberDetailsRole Workspace access role, with the same values as the member list. external_collaborator identifies a user with access to specific projects, rather than workspace membership. More values may be added; clients must tolerate unknown values.
+//
+// Example: workspace_admin
+type WorkspaceMemberDetailsRole string
 
 // WorkspaceMemberDetailsType Identity type. Currently user; clients must tolerate unknown values.
 //
@@ -2501,6 +2640,21 @@ type GetProjectAnalyticsBreakdownsParams struct {
 
 // GetProjectRealtimeAnalyticsParams defines parameters for GetProjectRealtimeAnalytics.
 type GetProjectRealtimeAnalyticsParams struct {
+	// LovableVersion Stable API version to serve, as a YYYY-MM-DD date. Omit for the oldest supported stable version, currently 2026-09-11.
+	LovableVersion *LovableVersion `json:"Lovable-Version,omitempty"`
+
+	// LovableBeta Comma-separated beta revision strings to enable on top of the stable version.
+	LovableBeta *LovableBeta `json:"Lovable-Beta,omitempty"`
+}
+
+// ListProjectCollaboratorsParams defines parameters for ListProjectCollaborators.
+type ListProjectCollaboratorsParams struct {
+	// Limit Maximum number of items to return per page.
+	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Cursor Pass pagination.next_cursor from the previous response to fetch the next page. Omit for the first page; keep the same filters and sort order across pages.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
 	// LovableVersion Stable API version to serve, as a YYYY-MM-DD date. Omit for the oldest supported stable version, currently 2026-09-11.
 	LovableVersion *LovableVersion `json:"Lovable-Version,omitempty"`
 
@@ -2974,6 +3128,17 @@ type ClientInterface interface {
 	// Corresponds with GET /v1/projects/{project_id}/analytics/realtime (the `GetProjectRealtimeAnalytics` operationId).
 	GetProjectRealtimeAnalytics(ctx context.Context, projectId string, params *GetProjectRealtimeAnalyticsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListProjectCollaborators List project collaborators
+	//
+	// **Plan:** `Business or higher`
+	//
+	// **Scope:** `projects:read`
+	//
+	// Returns users individually granted access to this project, with their access level. Access through groups, directorys, or a workspace role is not listed, and the owner appears only when they also hold an explicit grant. Excludes pending invitations to email addresses without a Lovable account. Each user_id matches a user_id from GET /v1/workspaces/{workspace_id}/members, where users added only to projects have the role external_collaborator. A newly added collaborator may not appear there immediately.
+	//
+	// Corresponds with GET /v1/projects/{project_id}/collaborators (the `ListProjectCollaborators` operationId).
+	ListProjectCollaborators(ctx context.Context, projectId string, params *ListProjectCollaboratorsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateEmbedUrlWithBody Create embed URL
 	//
 	// **Plan:** `Business or higher`
@@ -3385,6 +3550,27 @@ func (c *Client) GetProjectAnalyticsBreakdowns(ctx context.Context, projectId st
 // Corresponds with GET /v1/projects/{project_id}/analytics/realtime (the `GetProjectRealtimeAnalytics` operationId).
 func (c *Client) GetProjectRealtimeAnalytics(ctx context.Context, projectId string, params *GetProjectRealtimeAnalyticsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetProjectRealtimeAnalyticsRequest(c.Server, projectId, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// ListProjectCollaborators List project collaborators
+//
+// **Plan:** `Business or higher`
+//
+// **Scope:** `projects:read`
+//
+// Returns users individually granted access to this project, with their access level. Access through groups, directorys, or a workspace role is not listed, and the owner appears only when they also hold an explicit grant. Excludes pending invitations to email addresses without a Lovable account. Each user_id matches a user_id from GET /v1/workspaces/{workspace_id}/members, where users added only to projects have the role external_collaborator. A newly added collaborator may not appear there immediately.
+//
+// Corresponds with GET /v1/projects/{project_id}/collaborators (the `ListProjectCollaborators` operationId).
+func (c *Client) ListProjectCollaborators(ctx context.Context, projectId string, params *ListProjectCollaboratorsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListProjectCollaboratorsRequest(c.Server, projectId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -4406,6 +4592,105 @@ func NewGetProjectRealtimeAnalyticsRequest(server string, projectId string, para
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		if params.LovableVersion != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithOptions("simple", false, "Lovable-Version", *params.LovableVersion, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "string", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("Lovable-Version", headerParam0)
+		}
+
+		if params.LovableBeta != nil {
+			var headerParam1 string
+
+			headerParam1, err = runtime.StyleParamWithOptions("simple", false, "Lovable-Beta", *params.LovableBeta, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "string", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("Lovable-Beta", headerParam1)
+		}
+
+	}
+
+	return req, nil
+}
+
+// NewListProjectCollaboratorsRequest constructs an http.Request for the ListProjectCollaborators method
+func NewListProjectCollaboratorsRequest(server string, projectId string, params *ListProjectCollaboratorsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "project_id", projectId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/projects/%s/collaborators", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", false, "limit", *params.Limit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int64"}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Cursor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", false, "cursor", *params.Cursor, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
 	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
@@ -6204,6 +6489,19 @@ type ClientWithResponsesInterface interface {
 	//
 	// Corresponds with GET /v1/projects/{project_id}/analytics/realtime (the `GetProjectRealtimeAnalytics` operationId).
 	GetProjectRealtimeAnalyticsWithResponse(ctx context.Context, projectId string, params *GetProjectRealtimeAnalyticsParams, reqEditors ...RequestEditorFn) (*GetProjectRealtimeAnalyticsResponse, error)
+
+	// ListProjectCollaboratorsWithResponse List project collaborators
+	//
+	// **Plan:** `Business or higher`
+	//
+	// **Scope:** `projects:read`
+	//
+	// Returns users individually granted access to this project, with their access level. Access through groups, directorys, or a workspace role is not listed, and the owner appears only when they also hold an explicit grant. Excludes pending invitations to email addresses without a Lovable account. Each user_id matches a user_id from GET /v1/workspaces/{workspace_id}/members, where users added only to projects have the role external_collaborator. A newly added collaborator may not appear there immediately.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /v1/projects/{project_id}/collaborators (the `ListProjectCollaborators` operationId).
+	ListProjectCollaboratorsWithResponse(ctx context.Context, projectId string, params *ListProjectCollaboratorsParams, reqEditors ...RequestEditorFn) (*ListProjectCollaboratorsResponse, error)
 
 	// CreateEmbedUrlWithBodyWithResponse Create embed URL
 	//
@@ -8135,6 +8433,244 @@ func (r GetProjectRealtimeAnalyticsResponse) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r GetProjectRealtimeAnalyticsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+// ListProjectCollaboratorsResponse200Headers the declared response headers of an HTTP 200 response for ListProjectCollaborators
+type ListProjectCollaboratorsResponse200Headers struct {
+	LovableBeta                       *string
+	LovableVersion                    *string
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListProjectCollaboratorsResponse400Headers the declared response headers of an HTTP 400 response for ListProjectCollaborators
+type ListProjectCollaboratorsResponse400Headers struct {
+	LovableBeta                       *string
+	LovableVersion                    *string
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListProjectCollaboratorsResponse401Headers the declared response headers of an HTTP 401 response for ListProjectCollaborators
+type ListProjectCollaboratorsResponse401Headers struct {
+	WWWAuthenticate                   *string
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListProjectCollaboratorsResponse402Headers the declared response headers of an HTTP 402 response for ListProjectCollaborators
+type ListProjectCollaboratorsResponse402Headers struct {
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListProjectCollaboratorsResponse403Headers the declared response headers of an HTTP 403 response for ListProjectCollaborators
+type ListProjectCollaboratorsResponse403Headers struct {
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListProjectCollaboratorsResponse404Headers the declared response headers of an HTTP 404 response for ListProjectCollaborators
+type ListProjectCollaboratorsResponse404Headers struct {
+	LovableBeta                       *string
+	LovableVersion                    *string
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListProjectCollaboratorsResponse406Headers the declared response headers of an HTTP 406 response for ListProjectCollaborators
+type ListProjectCollaboratorsResponse406Headers struct {
+	LovableBeta                       *string
+	LovableVersion                    *string
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListProjectCollaboratorsResponse429Headers the declared response headers of an HTTP 429 response for ListProjectCollaborators
+type ListProjectCollaboratorsResponse429Headers struct {
+	RetryAfter                        *int
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListProjectCollaboratorsResponse503Headers the declared response headers of an HTTP 503 response for ListProjectCollaborators
+type ListProjectCollaboratorsResponse503Headers struct {
+	LovableBeta                       *string
+	LovableVersion                    *string
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListProjectCollaboratorsResponseDefaultHeaders the declared response headers of an HTTP default response for ListProjectCollaborators
+type ListProjectCollaboratorsResponseDefaultHeaders struct {
+	LovableBeta                       *string
+	LovableVersion                    *string
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+type ListProjectCollaboratorsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *ProjectCollaboratorPage
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *ErrorResponse
+	// JSON401 the response for an HTTP 401 `application/json` response
+	JSON401 *ErrorResponse
+	// JSON402 the response for an HTTP 402 `application/json` response
+	JSON402 *ErrorResponse
+	// JSON403 the response for an HTTP 403 `application/json` response
+	JSON403 *ErrorResponse
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *ErrorResponse
+	// JSON406 the response for an HTTP 406 `application/json` response
+	JSON406 *ErrorResponse
+	// JSON429 the response for an HTTP 429 `application/json` response
+	JSON429 *ErrorResponse
+	// JSON503 the response for an HTTP 503 `application/json` response
+	JSON503 *ErrorResponse
+	// JSONDefault the response for an HTTP default `application/json` response
+	JSONDefault *ErrorResponse
+	// Headers200 the parsed response headers for an HTTP 200 response
+	Headers200 *ListProjectCollaboratorsResponse200Headers
+	// Headers400 the parsed response headers for an HTTP 400 response
+	Headers400 *ListProjectCollaboratorsResponse400Headers
+	// Headers401 the parsed response headers for an HTTP 401 response
+	Headers401 *ListProjectCollaboratorsResponse401Headers
+	// Headers402 the parsed response headers for an HTTP 402 response
+	Headers402 *ListProjectCollaboratorsResponse402Headers
+	// Headers403 the parsed response headers for an HTTP 403 response
+	Headers403 *ListProjectCollaboratorsResponse403Headers
+	// Headers404 the parsed response headers for an HTTP 404 response
+	Headers404 *ListProjectCollaboratorsResponse404Headers
+	// Headers406 the parsed response headers for an HTTP 406 response
+	Headers406 *ListProjectCollaboratorsResponse406Headers
+	// Headers429 the parsed response headers for an HTTP 429 response
+	Headers429 *ListProjectCollaboratorsResponse429Headers
+	// Headers503 the parsed response headers for an HTTP 503 response
+	Headers503 *ListProjectCollaboratorsResponse503Headers
+	// HeadersDefault the parsed response headers for an HTTP default response
+	HeadersDefault *ListProjectCollaboratorsResponseDefaultHeaders
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r ListProjectCollaboratorsResponse) GetJSON200() *ProjectCollaboratorPage {
+	return r.JSON200
+}
+
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r ListProjectCollaboratorsResponse) GetJSON400() *ErrorResponse {
+	return r.JSON400
+}
+
+// GetJSON401 returns the response for an HTTP 401 `application/json` response
+func (r ListProjectCollaboratorsResponse) GetJSON401() *ErrorResponse {
+	return r.JSON401
+}
+
+// GetJSON402 returns the response for an HTTP 402 `application/json` response
+func (r ListProjectCollaboratorsResponse) GetJSON402() *ErrorResponse {
+	return r.JSON402
+}
+
+// GetJSON403 returns the response for an HTTP 403 `application/json` response
+func (r ListProjectCollaboratorsResponse) GetJSON403() *ErrorResponse {
+	return r.JSON403
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r ListProjectCollaboratorsResponse) GetJSON404() *ErrorResponse {
+	return r.JSON404
+}
+
+// GetJSON406 returns the response for an HTTP 406 `application/json` response
+func (r ListProjectCollaboratorsResponse) GetJSON406() *ErrorResponse {
+	return r.JSON406
+}
+
+// GetJSON429 returns the response for an HTTP 429 `application/json` response
+func (r ListProjectCollaboratorsResponse) GetJSON429() *ErrorResponse {
+	return r.JSON429
+}
+
+// GetJSON503 returns the response for an HTTP 503 `application/json` response
+func (r ListProjectCollaboratorsResponse) GetJSON503() *ErrorResponse {
+	return r.JSON503
+}
+
+// GetJSONDefault returns the response for an HTTP default `application/json` response
+func (r ListProjectCollaboratorsResponse) GetJSONDefault() *ErrorResponse {
+	return r.JSONDefault
+}
+
+// GetBody returns the raw response body bytes
+func (r ListProjectCollaboratorsResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r ListProjectCollaboratorsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListProjectCollaboratorsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListProjectCollaboratorsResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -12310,6 +12846,25 @@ func (c *ClientWithResponses) GetProjectRealtimeAnalyticsWithResponse(ctx contex
 		return nil, err
 	}
 	return ParseGetProjectRealtimeAnalyticsResponse(rsp)
+}
+
+// ListProjectCollaboratorsWithResponse List project collaborators
+//
+// **Plan:** `Business or higher`
+//
+// **Scope:** `projects:read`
+//
+// Returns users individually granted access to this project, with their access level. Access through groups, directorys, or a workspace role is not listed, and the owner appears only when they also hold an explicit grant. Excludes pending invitations to email addresses without a Lovable account. Each user_id matches a user_id from GET /v1/workspaces/{workspace_id}/members, where users added only to projects have the role external_collaborator. A newly added collaborator may not appear there immediately.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /v1/projects/{project_id}/collaborators (the `ListProjectCollaborators` operationId).
+func (c *ClientWithResponses) ListProjectCollaboratorsWithResponse(ctx context.Context, projectId string, params *ListProjectCollaboratorsParams, reqEditors ...RequestEditorFn) (*ListProjectCollaboratorsResponse, error) {
+	rsp, err := c.ListProjectCollaborators(ctx, projectId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListProjectCollaboratorsResponse(rsp)
 }
 
 // CreateEmbedUrlWithBodyWithResponse Create embed URL
@@ -17122,6 +17677,646 @@ func ParseGetProjectRealtimeAnalyticsResponse(rsp *http.Response) (*GetProjectRe
 		response.Headers503 = &headers
 	case true:
 		var headers GetProjectRealtimeAnalyticsResponseDefaultHeaders
+		if values := rsp.Header.Values("Lovable-Beta"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Beta", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableBeta = &value
+		}
+		if values := rsp.Header.Values("Lovable-Version"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Version", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableVersion = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.HeadersDefault = &headers
+	}
+
+	return response, nil
+}
+
+// ParseListProjectCollaboratorsResponse parses an HTTP response from a ListProjectCollaboratorsWithResponse call
+func ParseListProjectCollaboratorsResponse(rsp *http.Response) (*ListProjectCollaboratorsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListProjectCollaboratorsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ProjectCollaboratorPage
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 402:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON402 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 406:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON406 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	switch {
+	case rsp.StatusCode == 200:
+		var headers ListProjectCollaboratorsResponse200Headers
+		if values := rsp.Header.Values("Lovable-Beta"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Beta", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableBeta = &value
+		}
+		if values := rsp.Header.Values("Lovable-Version"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Version", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableVersion = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers200 = &headers
+	case rsp.StatusCode == 400:
+		var headers ListProjectCollaboratorsResponse400Headers
+		if values := rsp.Header.Values("Lovable-Beta"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Beta", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableBeta = &value
+		}
+		if values := rsp.Header.Values("Lovable-Version"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Version", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableVersion = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers400 = &headers
+	case rsp.StatusCode == 401:
+		var headers ListProjectCollaboratorsResponse401Headers
+		if values := rsp.Header.Values("WWW-Authenticate"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "WWW-Authenticate", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.WWWAuthenticate = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers401 = &headers
+	case rsp.StatusCode == 402:
+		var headers ListProjectCollaboratorsResponse402Headers
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers402 = &headers
+	case rsp.StatusCode == 403:
+		var headers ListProjectCollaboratorsResponse403Headers
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers403 = &headers
+	case rsp.StatusCode == 404:
+		var headers ListProjectCollaboratorsResponse404Headers
+		if values := rsp.Header.Values("Lovable-Beta"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Beta", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableBeta = &value
+		}
+		if values := rsp.Header.Values("Lovable-Version"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Version", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableVersion = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers404 = &headers
+	case rsp.StatusCode == 406:
+		var headers ListProjectCollaboratorsResponse406Headers
+		if values := rsp.Header.Values("Lovable-Beta"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Beta", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableBeta = &value
+		}
+		if values := rsp.Header.Values("Lovable-Version"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Version", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableVersion = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers406 = &headers
+	case rsp.StatusCode == 429:
+		var headers ListProjectCollaboratorsResponse429Headers
+		if values := rsp.Header.Values("Retry-After"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "Retry-After", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.RetryAfter = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers429 = &headers
+	case rsp.StatusCode == 503:
+		var headers ListProjectCollaboratorsResponse503Headers
+		if values := rsp.Header.Values("Lovable-Beta"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Beta", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableBeta = &value
+		}
+		if values := rsp.Header.Values("Lovable-Version"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Version", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableVersion = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers503 = &headers
+	case true:
+		var headers ListProjectCollaboratorsResponseDefaultHeaders
 		if values := rsp.Header.Values("Lovable-Beta"); len(values) > 0 {
 			var value string
 			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Beta", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {

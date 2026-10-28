@@ -1,6 +1,6 @@
 {
   "name": "go-lovable",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "Unofficial Go client for the Lovable API: projects, publishing, analytics, security scans, workspaces, groups and members, generated from the public OpenAPI spec.",
   "author": {
     "name": "psyb0t",
