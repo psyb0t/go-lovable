@@ -2,6 +2,10 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v0.2.1, 2026-11-02
+
+- Documentation only. The comments on `PublishProject`, `PublishProjectWithBody`, `PublishProjectWithResponse` and `PublishProjectWithBodyWithResponse`, and on the matching `ClientInterface` and `ClientWithResponsesInterface` methods, now say that when the workspace blocks publishing on critical security findings, the quick security scan runs first on the version being published. Unresolved findings fail the request with 400 `security_critical_findings`.
+
 ## v0.2.0, 2026-10-28
 
 - Added `ListProjectCollaborators` and `ListProjectCollaboratorsWithResponse`, with `ListProjectCollaboratorsParams`, `ListProjectCollaboratorsResponse`, `NewListProjectCollaboratorsRequest` and `ParseListProjectCollaboratorsResponse`. They list the collaborators of a project.

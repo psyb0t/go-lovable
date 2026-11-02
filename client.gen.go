@@ -3219,7 +3219,7 @@ type ClientInterface interface {
 	//
 	// **Scope:** `projects:write`
 	//
-	// Builds and deploys the project. Returns 202 with the Deployment representation, status running, and null url and error fields; poll GET /v1/projects/{project_id}/publish/{deployment_id} until deployment finishes. Optionally set audience to choose who can open the published app; project reads report it as publish_audience. Omit audience to keep the current setting. Audience changes apply to the currently published version immediately, before the new deployment finishes. To change access settings without rebuilding, use PATCH /v1/projects/{project_id}/publish. To take the app offline, use DELETE /v1/projects/{project_id}/publish.
+	// Builds and deploys the project. When the workspace blocks publishing on critical security findings, the quick security scan runs on the version being published first, and unresolved findings fail the request with 400 security_critical_findings. Returns 202 with the Deployment representation, status running, and null url and error fields; poll GET /v1/projects/{project_id}/publish/{deployment_id} until deployment finishes. Optionally set audience to choose who can open the published app; project reads report it as publish_audience. Omit audience to keep the current setting. Audience changes apply to the currently published version immediately, before the new deployment finishes. To change access settings without rebuilding, use PATCH /v1/projects/{project_id}/publish. To take the app offline, use DELETE /v1/projects/{project_id}/publish.
 	//
 	// Takes any type of body and a specified content type.
 	//
@@ -3232,7 +3232,7 @@ type ClientInterface interface {
 	//
 	// **Scope:** `projects:write`
 	//
-	// Builds and deploys the project. Returns 202 with the Deployment representation, status running, and null url and error fields; poll GET /v1/projects/{project_id}/publish/{deployment_id} until deployment finishes. Optionally set audience to choose who can open the published app; project reads report it as publish_audience. Omit audience to keep the current setting. Audience changes apply to the currently published version immediately, before the new deployment finishes. To change access settings without rebuilding, use PATCH /v1/projects/{project_id}/publish. To take the app offline, use DELETE /v1/projects/{project_id}/publish.
+	// Builds and deploys the project. When the workspace blocks publishing on critical security findings, the quick security scan runs on the version being published first, and unresolved findings fail the request with 400 security_critical_findings. Returns 202 with the Deployment representation, status running, and null url and error fields; poll GET /v1/projects/{project_id}/publish/{deployment_id} until deployment finishes. Optionally set audience to choose who can open the published app; project reads report it as publish_audience. Omit audience to keep the current setting. Audience changes apply to the currently published version immediately, before the new deployment finishes. To change access settings without rebuilding, use PATCH /v1/projects/{project_id}/publish. To take the app offline, use DELETE /v1/projects/{project_id}/publish.
 	//
 	// Takes a body of the `application/json` content type.
 	//
@@ -3721,7 +3721,7 @@ func (c *Client) UpdatePublishSettings(ctx context.Context, projectId string, pa
 //
 // **Scope:** `projects:write`
 //
-// Builds and deploys the project. Returns 202 with the Deployment representation, status running, and null url and error fields; poll GET /v1/projects/{project_id}/publish/{deployment_id} until deployment finishes. Optionally set audience to choose who can open the published app; project reads report it as publish_audience. Omit audience to keep the current setting. Audience changes apply to the currently published version immediately, before the new deployment finishes. To change access settings without rebuilding, use PATCH /v1/projects/{project_id}/publish. To take the app offline, use DELETE /v1/projects/{project_id}/publish.
+// Builds and deploys the project. When the workspace blocks publishing on critical security findings, the quick security scan runs on the version being published first, and unresolved findings fail the request with 400 security_critical_findings. Returns 202 with the Deployment representation, status running, and null url and error fields; poll GET /v1/projects/{project_id}/publish/{deployment_id} until deployment finishes. Optionally set audience to choose who can open the published app; project reads report it as publish_audience. Omit audience to keep the current setting. Audience changes apply to the currently published version immediately, before the new deployment finishes. To change access settings without rebuilding, use PATCH /v1/projects/{project_id}/publish. To take the app offline, use DELETE /v1/projects/{project_id}/publish.
 //
 // Takes any type of body and a specified content type.
 //
@@ -3744,7 +3744,7 @@ func (c *Client) PublishProjectWithBody(ctx context.Context, projectId string, p
 //
 // **Scope:** `projects:write`
 //
-// Builds and deploys the project. Returns 202 with the Deployment representation, status running, and null url and error fields; poll GET /v1/projects/{project_id}/publish/{deployment_id} until deployment finishes. Optionally set audience to choose who can open the published app; project reads report it as publish_audience. Omit audience to keep the current setting. Audience changes apply to the currently published version immediately, before the new deployment finishes. To change access settings without rebuilding, use PATCH /v1/projects/{project_id}/publish. To take the app offline, use DELETE /v1/projects/{project_id}/publish.
+// Builds and deploys the project. When the workspace blocks publishing on critical security findings, the quick security scan runs on the version being published first, and unresolved findings fail the request with 400 security_critical_findings. Returns 202 with the Deployment representation, status running, and null url and error fields; poll GET /v1/projects/{project_id}/publish/{deployment_id} until deployment finishes. Optionally set audience to choose who can open the published app; project reads report it as publish_audience. Omit audience to keep the current setting. Audience changes apply to the currently published version immediately, before the new deployment finishes. To change access settings without rebuilding, use PATCH /v1/projects/{project_id}/publish. To take the app offline, use DELETE /v1/projects/{project_id}/publish.
 //
 // Takes a body of the `application/json` content type.
 //
@@ -6587,7 +6587,7 @@ type ClientWithResponsesInterface interface {
 	//
 	// **Scope:** `projects:write`
 	//
-	// Builds and deploys the project. Returns 202 with the Deployment representation, status running, and null url and error fields; poll GET /v1/projects/{project_id}/publish/{deployment_id} until deployment finishes. Optionally set audience to choose who can open the published app; project reads report it as publish_audience. Omit audience to keep the current setting. Audience changes apply to the currently published version immediately, before the new deployment finishes. To change access settings without rebuilding, use PATCH /v1/projects/{project_id}/publish. To take the app offline, use DELETE /v1/projects/{project_id}/publish.
+	// Builds and deploys the project. When the workspace blocks publishing on critical security findings, the quick security scan runs on the version being published first, and unresolved findings fail the request with 400 security_critical_findings. Returns 202 with the Deployment representation, status running, and null url and error fields; poll GET /v1/projects/{project_id}/publish/{deployment_id} until deployment finishes. Optionally set audience to choose who can open the published app; project reads report it as publish_audience. Omit audience to keep the current setting. Audience changes apply to the currently published version immediately, before the new deployment finishes. To change access settings without rebuilding, use PATCH /v1/projects/{project_id}/publish. To take the app offline, use DELETE /v1/projects/{project_id}/publish.
 	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -6600,7 +6600,7 @@ type ClientWithResponsesInterface interface {
 	//
 	// **Scope:** `projects:write`
 	//
-	// Builds and deploys the project. Returns 202 with the Deployment representation, status running, and null url and error fields; poll GET /v1/projects/{project_id}/publish/{deployment_id} until deployment finishes. Optionally set audience to choose who can open the published app; project reads report it as publish_audience. Omit audience to keep the current setting. Audience changes apply to the currently published version immediately, before the new deployment finishes. To change access settings without rebuilding, use PATCH /v1/projects/{project_id}/publish. To take the app offline, use DELETE /v1/projects/{project_id}/publish.
+	// Builds and deploys the project. When the workspace blocks publishing on critical security findings, the quick security scan runs on the version being published first, and unresolved findings fail the request with 400 security_critical_findings. Returns 202 with the Deployment representation, status running, and null url and error fields; poll GET /v1/projects/{project_id}/publish/{deployment_id} until deployment finishes. Optionally set audience to choose who can open the published app; project reads report it as publish_audience. Omit audience to keep the current setting. Audience changes apply to the currently published version immediately, before the new deployment finishes. To change access settings without rebuilding, use PATCH /v1/projects/{project_id}/publish. To take the app offline, use DELETE /v1/projects/{project_id}/publish.
 	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -12987,7 +12987,7 @@ func (c *ClientWithResponses) UpdatePublishSettingsWithResponse(ctx context.Cont
 //
 // **Scope:** `projects:write`
 //
-// Builds and deploys the project. Returns 202 with the Deployment representation, status running, and null url and error fields; poll GET /v1/projects/{project_id}/publish/{deployment_id} until deployment finishes. Optionally set audience to choose who can open the published app; project reads report it as publish_audience. Omit audience to keep the current setting. Audience changes apply to the currently published version immediately, before the new deployment finishes. To change access settings without rebuilding, use PATCH /v1/projects/{project_id}/publish. To take the app offline, use DELETE /v1/projects/{project_id}/publish.
+// Builds and deploys the project. When the workspace blocks publishing on critical security findings, the quick security scan runs on the version being published first, and unresolved findings fail the request with 400 security_critical_findings. Returns 202 with the Deployment representation, status running, and null url and error fields; poll GET /v1/projects/{project_id}/publish/{deployment_id} until deployment finishes. Optionally set audience to choose who can open the published app; project reads report it as publish_audience. Omit audience to keep the current setting. Audience changes apply to the currently published version immediately, before the new deployment finishes. To change access settings without rebuilding, use PATCH /v1/projects/{project_id}/publish. To take the app offline, use DELETE /v1/projects/{project_id}/publish.
 //
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
@@ -13006,7 +13006,7 @@ func (c *ClientWithResponses) PublishProjectWithBodyWithResponse(ctx context.Con
 //
 // **Scope:** `projects:write`
 //
-// Builds and deploys the project. Returns 202 with the Deployment representation, status running, and null url and error fields; poll GET /v1/projects/{project_id}/publish/{deployment_id} until deployment finishes. Optionally set audience to choose who can open the published app; project reads report it as publish_audience. Omit audience to keep the current setting. Audience changes apply to the currently published version immediately, before the new deployment finishes. To change access settings without rebuilding, use PATCH /v1/projects/{project_id}/publish. To take the app offline, use DELETE /v1/projects/{project_id}/publish.
+// Builds and deploys the project. When the workspace blocks publishing on critical security findings, the quick security scan runs on the version being published first, and unresolved findings fail the request with 400 security_critical_findings. Returns 202 with the Deployment representation, status running, and null url and error fields; poll GET /v1/projects/{project_id}/publish/{deployment_id} until deployment finishes. Optionally set audience to choose who can open the published app; project reads report it as publish_audience. Omit audience to keep the current setting. Audience changes apply to the currently published version immediately, before the new deployment finishes. To change access settings without rebuilding, use PATCH /v1/projects/{project_id}/publish. To take the app offline, use DELETE /v1/projects/{project_id}/publish.
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //
