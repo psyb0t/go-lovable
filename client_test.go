@@ -22,6 +22,7 @@ const (
 		"visibility":null, "latest_screenshot_url":null,
 		"is_published":false, "publish_audience":null,
 		"created_at":null, "last_edited_at":null,
+		"folder_id":null, "is_remix":false,
 		"latest_commit_sha":null, "preview_url":null,
 		"publish_audience_targets":[]
 	}`

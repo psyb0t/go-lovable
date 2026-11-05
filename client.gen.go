@@ -1328,6 +1328,11 @@ type Project struct {
 	// Example: A landing page for Acme with a hero, features, and pricing.
 	Description nullable.Nullable[string] `json:"description"`
 
+	// FolderId ID of the directory the project is in; null when it is in none. A project is in at most one directory, and a directory can be nested in another. Folder names and nesting come from GET /v1/workspaces/{workspace_id}/directorys.
+	//
+	// Example: fold_01jw3k9m2xq8r5v0c7d4e6f2gh
+	FolderId nullable.Nullable[string] `json:"folder_id"`
+
 	// Id Project ID.
 	//
 	// Example: prj_01jw3k9m2xq8r5v0c7d4e6f2gh
@@ -1337,6 +1342,11 @@ type Project struct {
 	//
 	// Example: true
 	IsPublished bool `json:"is_published"`
+
+	// IsRemix Whether the project was created by remixing another project. The source project is not identified.
+	//
+	// Example: false
+	IsRemix bool `json:"is_remix"`
 
 	// LastEditedAt When the project last received an edit or a user chat message; null when neither has happened.
 	//
@@ -1516,6 +1526,11 @@ type ProjectSummary struct {
 	//
 	// Example: A landing page for Acme with a hero, features, and pricing.
 	Description nullable.Nullable[string] `json:"description"`
+
+	// FolderId ID of the directory the project is in; null when it is in none. A project is in at most one directory, and a directory can be nested in another. Folder names and nesting come from GET /v1/workspaces/{workspace_id}/directorys.
+	//
+	// Example: fold_01jw3k9m2xq8r5v0c7d4e6f2gh
+	FolderId nullable.Nullable[string] `json:"folder_id"`
 
 	// Id Project ID.
 	//
@@ -1959,6 +1974,41 @@ type WorkspaceAnalytics struct {
 	TimeSeries TimeSeriesGroup `json:"time_series"`
 }
 
+// WorkspaceFolder defines model for WorkspaceFolder.
+type WorkspaceFolder struct {
+	// CreatedAt When the directory was created.
+	//
+	// Example: 2026-01-15T09:30:00Z
+	CreatedAt time.Time `json:"created_at"`
+
+	// Id Folder ID. Matches the directory_id of projects in the directory.
+	//
+	// Example: fold_01jw3k9m2xq8r5v0c7d4e6f2gh
+	Id string `json:"id"`
+
+	// Name Folder name.
+	//
+	// Example: Finance apps
+	Name string `json:"name"`
+
+	// ParentId ID of the directory this directory is nested in; null for a top-level directory.
+	//
+	// Example: fold_01jw3k9m2xq8r5v0c7d4e6f2gh
+	ParentId nullable.Nullable[string] `json:"parent_id"`
+
+	// UpdatedAt When the directory was last renamed, moved, or had its visibility changed.
+	//
+	// Example: 2026-01-15T09:30:00Z
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// WorkspaceFolderPage defines model for WorkspaceFolderPage.
+type WorkspaceFolderPage struct {
+	// Data Items in this page. Empty when there are none.
+	Data       []WorkspaceFolder `json:"data"`
+	Pagination Pagination        `json:"pagination"`
+}
+
 // WorkspaceGroup defines model for WorkspaceGroup.
 type WorkspaceGroup struct {
 	// CreatedAt When the group was created.
@@ -2136,6 +2186,11 @@ type WorkspaceInsightsProject struct {
 	//
 	// Example: 21
 	Edits7d int64 `json:"edits_7d"`
+
+	// FolderId ID of the directory the project is in; null when it is in none. A project is in at most one directory, and a directory can be nested in another. Folder names and nesting come from GET /v1/workspaces/{workspace_id}/directorys.
+	//
+	// Example: fold_01jw3k9m2xq8r5v0c7d4e6f2gh
+	FolderId nullable.Nullable[string] `json:"folder_id"`
 
 	// Id Project ID.
 	//
@@ -2553,6 +2608,12 @@ type ListProjectsParams struct {
 	// PublishAudience Filter published projects by the publish_audience field, resolved the same way the response resolves it, including the workspace default. Repeat to match any value. Omit for no filter. Requires is_published to be true or omitted.
 	PublishAudience *[]ListProjectsParamsPublishAudience `form:"publish_audience,omitempty" json:"publish_audience,omitempty"`
 
+	// FolderId Filter by the directory_id field: projects placed directly in the directory, not those in directorys nested inside it. Repeat to match any of the directorys, for example a directory and its children from GET /v1/workspaces/{workspace_id}/directorys. Omit for no filter.
+	FolderId *[]string `form:"folder_id,omitempty" json:"folder_id,omitempty"`
+
+	// IsInFolder Filter by whether the project is in a directory. false selects projects whose directory_id is null. Omit for no filter. Cannot be false when directory_id is set.
+	IsInFolder *bool `form:"is_in_folder,omitempty" json:"is_in_folder,omitempty"`
+
 	// Query Search project names, generated descriptions, and owner names or email addresses. Terms shorter than 3 characters are ignored.
 	Query *string `form:"query,omitempty" json:"query,omitempty"`
 
@@ -2806,6 +2867,21 @@ type GetWorkspaceAnalyticsParams struct {
 // GetWorkspaceAnalyticsParamsGranularity defines parameters for GetWorkspaceAnalytics.
 type GetWorkspaceAnalyticsParamsGranularity string
 
+// ListWorkspaceFoldersParams defines parameters for ListWorkspaceFolders.
+type ListWorkspaceFoldersParams struct {
+	// Limit Maximum number of items to return per page.
+	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Cursor Pass pagination.next_cursor from the previous response to fetch the next page. Omit for the first page; keep the same filters and sort order across pages.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// LovableVersion Stable API version to serve, as a YYYY-MM-DD date. Omit for the oldest supported stable version, currently 2026-09-11.
+	LovableVersion *LovableVersion `json:"Lovable-Version,omitempty"`
+
+	// LovableBeta Comma-separated beta revision strings to enable on top of the stable version.
+	LovableBeta *LovableBeta `json:"Lovable-Beta,omitempty"`
+}
+
 // ListWorkspaceGroupsParams defines parameters for ListWorkspaceGroups.
 type ListWorkspaceGroupsParams struct {
 	// Limit Maximum number of items to return per page.
@@ -2924,6 +3000,12 @@ type ListSecurityInsightProjectsParams struct {
 
 	// FindingTypeId Finding type IDs returned by GET /v1/workspaces/{workspace_id}/security-center/insights. Finding filters use the same category rules as project_count in that response. A project matching a more specific related type is excluded from the broader type. Repeat to match any selected type. Unknown IDs return 400. Types that depend on personal data detection return 402 when that feature is not available on the workspace plan.
 	FindingTypeId *[]string `form:"finding_type_id,omitempty" json:"finding_type_id,omitempty"`
+
+	// FolderId Filter by the directory_id field: projects placed directly in the directory, not those in directorys nested inside it. Repeat to match any of the directorys, for example a directory and its children from GET /v1/workspaces/{workspace_id}/directorys. Omit for no filter.
+	FolderId *[]string `form:"folder_id,omitempty" json:"folder_id,omitempty"`
+
+	// IsInFolder Filter by whether the project is in a directory. false selects projects whose directory_id is null. Omit for no filter. Cannot be false when directory_id is set.
+	IsInFolder *bool `form:"is_in_folder,omitempty" json:"is_in_folder,omitempty"`
 
 	// LovableVersion Stable API version to serve, as a YYYY-MM-DD date. Omit for the oldest supported stable version, currently 2026-09-11.
 	LovableVersion *LovableVersion `json:"Lovable-Version,omitempty"`
@@ -3329,6 +3411,17 @@ type ClientInterface interface {
 	//
 	// Corresponds with GET /v1/workspaces/{workspace_id}/analytics (the `GetWorkspaceAnalytics` operationId).
 	GetWorkspaceAnalytics(ctx context.Context, workspaceId string, params *GetWorkspaceAnalyticsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListWorkspaceFolders List workspace folders
+	//
+	// **Plan:** `Business or higher`
+	//
+	// **Scope:** `workspaces:read`
+	//
+	// Returns the workspace's directorys, sorted by name then id. Each project belongs to at most one directory; match a directory's id against the directory_id of GET /v1/projects and GET /v1/workspaces/{workspace_id}/security-center/insights/projects to group projects by directory, and filter either list with directory_id or is_in_directory. Restricted directorys are returned only when the caller created them, was given access to them, or may manage every member's restricted directorys. Reads are eventually consistent: recent changes may not appear immediately. Retry the read with backoff if an expected change is missing.
+	//
+	// Corresponds with GET /v1/workspaces/{workspace_id}/folders (the `ListWorkspaceFolders` operationId).
+	ListWorkspaceFolders(ctx context.Context, workspaceId string, params *ListWorkspaceFoldersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListWorkspaceGroups List workspace groups
 	//
@@ -3922,6 +4015,27 @@ func (c *Client) GetWorkspaceAnalytics(ctx context.Context, workspaceId string, 
 	return c.Client.Do(req)
 }
 
+// ListWorkspaceFolders List workspace folders
+//
+// **Plan:** `Business or higher`
+//
+// **Scope:** `workspaces:read`
+//
+// Returns the workspace's directorys, sorted by name then id. Each project belongs to at most one directory; match a directory's id against the directory_id of GET /v1/projects and GET /v1/workspaces/{workspace_id}/security-center/insights/projects to group projects by directory, and filter either list with directory_id or is_in_directory. Restricted directorys are returned only when the caller created them, was given access to them, or may manage every member's restricted directorys. Reads are eventually consistent: recent changes may not appear immediately. Retry the read with backoff if an expected change is missing.
+//
+// Corresponds with GET /v1/workspaces/{workspace_id}/folders (the `ListWorkspaceFolders` operationId).
+func (c *Client) ListWorkspaceFolders(ctx context.Context, workspaceId string, params *ListWorkspaceFoldersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListWorkspaceFoldersRequest(c.Server, workspaceId, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 // ListWorkspaceGroups List workspace groups
 //
 // **Plan:** `Business or higher`
@@ -4096,6 +4210,30 @@ func NewListProjectsRequest(server string, params *ListProjectsParams) (*http.Re
 		if params.PublishAudience != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "publish_audience", *params.PublishAudience, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.FolderId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "folder_id", *params.FolderId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.IsInFolder != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", false, "is_in_folder", *params.IsInFolder, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "boolean", Format: ""}); err != nil {
 				return nil, err
 			} else {
 				for _, qp := range strings.Split(queryFrag, "&") {
@@ -5699,6 +5837,105 @@ func NewGetWorkspaceAnalyticsRequest(server string, workspaceId string, params *
 	return req, nil
 }
 
+// NewListWorkspaceFoldersRequest constructs an http.Request for the ListWorkspaceFolders method
+func NewListWorkspaceFoldersRequest(server string, workspaceId string, params *ListWorkspaceFoldersParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "workspace_id", workspaceId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/workspaces/%s/folders", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", false, "limit", *params.Limit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int64"}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Cursor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", false, "cursor", *params.Cursor, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		if params.LovableVersion != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithOptions("simple", false, "Lovable-Version", *params.LovableVersion, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "string", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("Lovable-Version", headerParam0)
+		}
+
+		if params.LovableBeta != nil {
+			var headerParam1 string
+
+			headerParam1, err = runtime.StyleParamWithOptions("simple", false, "Lovable-Beta", *params.LovableBeta, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "string", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("Lovable-Beta", headerParam1)
+		}
+
+	}
+
+	return req, nil
+}
+
 // NewListWorkspaceGroupsRequest constructs an http.Request for the ListWorkspaceGroups method
 func NewListWorkspaceGroupsRequest(server string, workspaceId string, params *ListWorkspaceGroupsParams) (*http.Request, error) {
 	var err error
@@ -6302,6 +6539,30 @@ func NewListSecurityInsightProjectsRequest(server string, workspaceId string, pa
 
 		}
 
+		if params.FolderId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "folder_id", *params.FolderId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.IsInFolder != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", false, "is_in_folder", *params.IsInFolder, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "boolean", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
 		if encoded := queryValues.Encode(); encoded != "" {
 			rawQueryFragments = append(rawQueryFragments, encoded)
 		}
@@ -6711,6 +6972,19 @@ type ClientWithResponsesInterface interface {
 	//
 	// Corresponds with GET /v1/workspaces/{workspace_id}/analytics (the `GetWorkspaceAnalytics` operationId).
 	GetWorkspaceAnalyticsWithResponse(ctx context.Context, workspaceId string, params *GetWorkspaceAnalyticsParams, reqEditors ...RequestEditorFn) (*GetWorkspaceAnalyticsResponse, error)
+
+	// ListWorkspaceFoldersWithResponse List workspace folders
+	//
+	// **Plan:** `Business or higher`
+	//
+	// **Scope:** `workspaces:read`
+	//
+	// Returns the workspace's directorys, sorted by name then id. Each project belongs to at most one directory; match a directory's id against the directory_id of GET /v1/projects and GET /v1/workspaces/{workspace_id}/security-center/insights/projects to group projects by directory, and filter either list with directory_id or is_in_directory. Restricted directorys are returned only when the caller created them, was given access to them, or may manage every member's restricted directorys. Reads are eventually consistent: recent changes may not appear immediately. Retry the read with backoff if an expected change is missing.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /v1/workspaces/{workspace_id}/folders (the `ListWorkspaceFolders` operationId).
+	ListWorkspaceFoldersWithResponse(ctx context.Context, workspaceId string, params *ListWorkspaceFoldersParams, reqEditors ...RequestEditorFn) (*ListWorkspaceFoldersResponse, error)
 
 	// ListWorkspaceGroupsWithResponse List workspace groups
 	//
@@ -11506,6 +11780,244 @@ func (r GetWorkspaceAnalyticsResponse) ContentType() string {
 	return ""
 }
 
+// ListWorkspaceFoldersResponse200Headers the declared response headers of an HTTP 200 response for ListWorkspaceFolders
+type ListWorkspaceFoldersResponse200Headers struct {
+	LovableBeta                       *string
+	LovableVersion                    *string
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListWorkspaceFoldersResponse400Headers the declared response headers of an HTTP 400 response for ListWorkspaceFolders
+type ListWorkspaceFoldersResponse400Headers struct {
+	LovableBeta                       *string
+	LovableVersion                    *string
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListWorkspaceFoldersResponse401Headers the declared response headers of an HTTP 401 response for ListWorkspaceFolders
+type ListWorkspaceFoldersResponse401Headers struct {
+	WWWAuthenticate                   *string
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListWorkspaceFoldersResponse402Headers the declared response headers of an HTTP 402 response for ListWorkspaceFolders
+type ListWorkspaceFoldersResponse402Headers struct {
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListWorkspaceFoldersResponse403Headers the declared response headers of an HTTP 403 response for ListWorkspaceFolders
+type ListWorkspaceFoldersResponse403Headers struct {
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListWorkspaceFoldersResponse404Headers the declared response headers of an HTTP 404 response for ListWorkspaceFolders
+type ListWorkspaceFoldersResponse404Headers struct {
+	LovableBeta                       *string
+	LovableVersion                    *string
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListWorkspaceFoldersResponse406Headers the declared response headers of an HTTP 406 response for ListWorkspaceFolders
+type ListWorkspaceFoldersResponse406Headers struct {
+	LovableBeta                       *string
+	LovableVersion                    *string
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListWorkspaceFoldersResponse429Headers the declared response headers of an HTTP 429 response for ListWorkspaceFolders
+type ListWorkspaceFoldersResponse429Headers struct {
+	RetryAfter                        *int
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListWorkspaceFoldersResponse503Headers the declared response headers of an HTTP 503 response for ListWorkspaceFolders
+type ListWorkspaceFoldersResponse503Headers struct {
+	LovableBeta                       *string
+	LovableVersion                    *string
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+// ListWorkspaceFoldersResponseDefaultHeaders the declared response headers of an HTTP default response for ListWorkspaceFolders
+type ListWorkspaceFoldersResponseDefaultHeaders struct {
+	LovableBeta                       *string
+	LovableVersion                    *string
+	XLovableUnknownQueryParams        *string
+	XLovableUnknownQueryParamsOmitted *int
+	XRateLimitLimit                   *int
+	XRateLimitRemaining               *int
+	XRateLimitReset                   *int
+	XRequestId                        *string
+}
+
+type ListWorkspaceFoldersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *WorkspaceFolderPage
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *ErrorResponse
+	// JSON401 the response for an HTTP 401 `application/json` response
+	JSON401 *ErrorResponse
+	// JSON402 the response for an HTTP 402 `application/json` response
+	JSON402 *ErrorResponse
+	// JSON403 the response for an HTTP 403 `application/json` response
+	JSON403 *ErrorResponse
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *ErrorResponse
+	// JSON406 the response for an HTTP 406 `application/json` response
+	JSON406 *ErrorResponse
+	// JSON429 the response for an HTTP 429 `application/json` response
+	JSON429 *ErrorResponse
+	// JSON503 the response for an HTTP 503 `application/json` response
+	JSON503 *ErrorResponse
+	// JSONDefault the response for an HTTP default `application/json` response
+	JSONDefault *ErrorResponse
+	// Headers200 the parsed response headers for an HTTP 200 response
+	Headers200 *ListWorkspaceFoldersResponse200Headers
+	// Headers400 the parsed response headers for an HTTP 400 response
+	Headers400 *ListWorkspaceFoldersResponse400Headers
+	// Headers401 the parsed response headers for an HTTP 401 response
+	Headers401 *ListWorkspaceFoldersResponse401Headers
+	// Headers402 the parsed response headers for an HTTP 402 response
+	Headers402 *ListWorkspaceFoldersResponse402Headers
+	// Headers403 the parsed response headers for an HTTP 403 response
+	Headers403 *ListWorkspaceFoldersResponse403Headers
+	// Headers404 the parsed response headers for an HTTP 404 response
+	Headers404 *ListWorkspaceFoldersResponse404Headers
+	// Headers406 the parsed response headers for an HTTP 406 response
+	Headers406 *ListWorkspaceFoldersResponse406Headers
+	// Headers429 the parsed response headers for an HTTP 429 response
+	Headers429 *ListWorkspaceFoldersResponse429Headers
+	// Headers503 the parsed response headers for an HTTP 503 response
+	Headers503 *ListWorkspaceFoldersResponse503Headers
+	// HeadersDefault the parsed response headers for an HTTP default response
+	HeadersDefault *ListWorkspaceFoldersResponseDefaultHeaders
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r ListWorkspaceFoldersResponse) GetJSON200() *WorkspaceFolderPage {
+	return r.JSON200
+}
+
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r ListWorkspaceFoldersResponse) GetJSON400() *ErrorResponse {
+	return r.JSON400
+}
+
+// GetJSON401 returns the response for an HTTP 401 `application/json` response
+func (r ListWorkspaceFoldersResponse) GetJSON401() *ErrorResponse {
+	return r.JSON401
+}
+
+// GetJSON402 returns the response for an HTTP 402 `application/json` response
+func (r ListWorkspaceFoldersResponse) GetJSON402() *ErrorResponse {
+	return r.JSON402
+}
+
+// GetJSON403 returns the response for an HTTP 403 `application/json` response
+func (r ListWorkspaceFoldersResponse) GetJSON403() *ErrorResponse {
+	return r.JSON403
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r ListWorkspaceFoldersResponse) GetJSON404() *ErrorResponse {
+	return r.JSON404
+}
+
+// GetJSON406 returns the response for an HTTP 406 `application/json` response
+func (r ListWorkspaceFoldersResponse) GetJSON406() *ErrorResponse {
+	return r.JSON406
+}
+
+// GetJSON429 returns the response for an HTTP 429 `application/json` response
+func (r ListWorkspaceFoldersResponse) GetJSON429() *ErrorResponse {
+	return r.JSON429
+}
+
+// GetJSON503 returns the response for an HTTP 503 `application/json` response
+func (r ListWorkspaceFoldersResponse) GetJSON503() *ErrorResponse {
+	return r.JSON503
+}
+
+// GetJSONDefault returns the response for an HTTP default `application/json` response
+func (r ListWorkspaceFoldersResponse) GetJSONDefault() *ErrorResponse {
+	return r.JSONDefault
+}
+
+// GetBody returns the raw response body bytes
+func (r ListWorkspaceFoldersResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r ListWorkspaceFoldersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListWorkspaceFoldersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListWorkspaceFoldersResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 // ListWorkspaceGroupsResponse200Headers the declared response headers of an HTTP 200 response for ListWorkspaceGroups
 type ListWorkspaceGroupsResponse200Headers struct {
 	LovableBeta                       *string
@@ -13164,6 +13676,25 @@ func (c *ClientWithResponses) GetWorkspaceAnalyticsWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseGetWorkspaceAnalyticsResponse(rsp)
+}
+
+// ListWorkspaceFoldersWithResponse List workspace folders
+//
+// **Plan:** `Business or higher`
+//
+// **Scope:** `workspaces:read`
+//
+// Returns the workspace's directorys, sorted by name then id. Each project belongs to at most one directory; match a directory's id against the directory_id of GET /v1/projects and GET /v1/workspaces/{workspace_id}/security-center/insights/projects to group projects by directory, and filter either list with directory_id or is_in_directory. Restricted directorys are returned only when the caller created them, was given access to them, or may manage every member's restricted directorys. Reads are eventually consistent: recent changes may not appear immediately. Retry the read with backoff if an expected change is missing.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /v1/workspaces/{workspace_id}/folders (the `ListWorkspaceFolders` operationId).
+func (c *ClientWithResponses) ListWorkspaceFoldersWithResponse(ctx context.Context, workspaceId string, params *ListWorkspaceFoldersParams, reqEditors ...RequestEditorFn) (*ListWorkspaceFoldersResponse, error) {
+	rsp, err := c.ListWorkspaceFolders(ctx, workspaceId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListWorkspaceFoldersResponse(rsp)
 }
 
 // ListWorkspaceGroupsWithResponse List workspace groups
@@ -25934,6 +26465,646 @@ func ParseGetWorkspaceAnalyticsResponse(rsp *http.Response) (*GetWorkspaceAnalyt
 		response.Headers503 = &headers
 	case true:
 		var headers GetWorkspaceAnalyticsResponseDefaultHeaders
+		if values := rsp.Header.Values("Lovable-Beta"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Beta", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableBeta = &value
+		}
+		if values := rsp.Header.Values("Lovable-Version"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Version", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableVersion = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.HeadersDefault = &headers
+	}
+
+	return response, nil
+}
+
+// ParseListWorkspaceFoldersResponse parses an HTTP response from a ListWorkspaceFoldersWithResponse call
+func ParseListWorkspaceFoldersResponse(rsp *http.Response) (*ListWorkspaceFoldersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListWorkspaceFoldersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest WorkspaceFolderPage
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 402:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON402 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 406:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON406 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	switch {
+	case rsp.StatusCode == 200:
+		var headers ListWorkspaceFoldersResponse200Headers
+		if values := rsp.Header.Values("Lovable-Beta"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Beta", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableBeta = &value
+		}
+		if values := rsp.Header.Values("Lovable-Version"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Version", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableVersion = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers200 = &headers
+	case rsp.StatusCode == 400:
+		var headers ListWorkspaceFoldersResponse400Headers
+		if values := rsp.Header.Values("Lovable-Beta"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Beta", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableBeta = &value
+		}
+		if values := rsp.Header.Values("Lovable-Version"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Version", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableVersion = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers400 = &headers
+	case rsp.StatusCode == 401:
+		var headers ListWorkspaceFoldersResponse401Headers
+		if values := rsp.Header.Values("WWW-Authenticate"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "WWW-Authenticate", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.WWWAuthenticate = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers401 = &headers
+	case rsp.StatusCode == 402:
+		var headers ListWorkspaceFoldersResponse402Headers
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers402 = &headers
+	case rsp.StatusCode == 403:
+		var headers ListWorkspaceFoldersResponse403Headers
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers403 = &headers
+	case rsp.StatusCode == 404:
+		var headers ListWorkspaceFoldersResponse404Headers
+		if values := rsp.Header.Values("Lovable-Beta"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Beta", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableBeta = &value
+		}
+		if values := rsp.Header.Values("Lovable-Version"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Version", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableVersion = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers404 = &headers
+	case rsp.StatusCode == 406:
+		var headers ListWorkspaceFoldersResponse406Headers
+		if values := rsp.Header.Values("Lovable-Beta"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Beta", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableBeta = &value
+		}
+		if values := rsp.Header.Values("Lovable-Version"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Version", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableVersion = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers406 = &headers
+	case rsp.StatusCode == 429:
+		var headers ListWorkspaceFoldersResponse429Headers
+		if values := rsp.Header.Values("Retry-After"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "Retry-After", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.RetryAfter = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers429 = &headers
+	case rsp.StatusCode == 503:
+		var headers ListWorkspaceFoldersResponse503Headers
+		if values := rsp.Header.Values("Lovable-Beta"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Beta", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableBeta = &value
+		}
+		if values := rsp.Header.Values("Lovable-Version"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Version", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.LovableVersion = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParams = &value
+		}
+		if values := rsp.Header.Values("X-Lovable-Unknown-Query-Params-Omitted"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Lovable-Unknown-Query-Params-Omitted", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XLovableUnknownQueryParamsOmitted = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("X-RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRateLimitReset = &value
+		}
+		if values := rsp.Header.Values("X-Request-Id"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "X-Request-Id", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.XRequestId = &value
+		}
+		response.Headers503 = &headers
+	case true:
+		var headers ListWorkspaceFoldersResponseDefaultHeaders
 		if values := rsp.Header.Values("Lovable-Beta"); len(values) > 0 {
 			var value string
 			if err := runtime.BindStyledParameterWithOptions("simple", "Lovable-Beta", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {

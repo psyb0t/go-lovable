@@ -2,6 +2,15 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v0.3.0, 2026-11-05
+
+- Added `ListWorkspaceFolders` and `ListWorkspaceFoldersWithResponse`, with `ListWorkspaceFoldersParams`, `ListWorkspaceFoldersResponse`, `NewListWorkspaceFoldersRequest` and `ParseListWorkspaceFoldersResponse`. They list the folders of a workspace from `/v1/workspaces/{workspace_id}/folders`.
+- Added the types `WorkspaceFolder` and `WorkspaceFolderPage`, and the per-status header types `ListWorkspaceFoldersResponse200Headers` and its 400, 401, 402, 403, 404, 406, 429, 503 and Default counterparts.
+- `ClientInterface` and `ClientWithResponsesInterface` gained the new methods, so any type that implements them, such as a test mock, must add them.
+- Added `Project.FolderId` and `Project.IsRemix`, `ProjectSummary.FolderId` and `WorkspaceInsightsProject.FolderId`.
+- Added the `FolderId` and `IsInFolder` query filters to `ListProjectsParams` and `ListSecurityInsightProjectsParams`.
+- The contract test fixture `testProject` in `client_test.go` now includes `folder_id` and `is_remix`, to match the regenerated `Project` type.
+
 ## v0.2.1, 2026-11-02
 
 - Documentation only. The comments on `PublishProject`, `PublishProjectWithBody`, `PublishProjectWithResponse` and `PublishProjectWithBodyWithResponse`, and on the matching `ClientInterface` and `ClientWithResponsesInterface` methods, now say that when the workspace blocks publishing on critical security findings, the quick security scan runs first on the version being published. Unresolved findings fail the request with 400 `security_critical_findings`.
