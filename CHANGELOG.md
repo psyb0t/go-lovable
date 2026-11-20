@@ -2,6 +2,12 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v0.3.1, 2026-11-20
+
+- Updated the documentation on `UpdatePublishSettings`, `UpdatePublishSettingsWithBody`, `UpdatePublishSettingsWithResponse` and `UpdatePublishSettingsWithBodyWithResponse`, and on the matching `ClientInterface` and `ClientWithResponsesInterface` methods. A published app gets the same checks as publishing. Making it public can fail with 400 `security_critical_findings` or `pii_findings_unresolved`. Making it private can fail with 400 `app_mcp_unauthenticated_private`.
+- Raised the minimum Go version in `go.mod` from 1.26.10 to 1.26.11, to pick up the `net/http` fix for GO-2026-6859 that `govulncheck` reported.
+- Updated the development image `Dockerfile.dev` and the setup notes to Go 1.26.11.
+
 ## v0.3.0, 2026-11-05
 
 - Added `ListWorkspaceFolders` and `ListWorkspaceFoldersWithResponse`, with `ListWorkspaceFoldersParams`, `ListWorkspaceFoldersResponse`, `NewListWorkspaceFoldersRequest` and `ParseListWorkspaceFoldersResponse`. They list the folders of a workspace from `/v1/workspaces/{workspace_id}/folders`.
