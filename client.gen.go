@@ -2147,7 +2147,7 @@ type WorkspaceInsightsOwner struct {
 
 // WorkspaceInsightsProject defines model for WorkspaceInsightsProject.
 type WorkspaceInsightsProject struct {
-	// ActivityGroup Last-edit recency, using 14-day and 60-day boundaries; null when the project was never edited. More values may be added; clients must tolerate unknown values.
+	// ActivityGroup Last-edit recency, using 14-day and 60-day boundaries; older when the project was never edited. More values may be added; clients must tolerate unknown values.
 	//
 	// Example: last_14_days
 	ActivityGroup nullable.Nullable[WorkspaceInsightsProjectActivityGroup] `json:"activity_group"`
@@ -2269,7 +2269,7 @@ type WorkspaceInsightsProject struct {
 	Visitors7d int64 `json:"visitors_7d"`
 }
 
-// WorkspaceInsightsProjectActivityGroup Last-edit recency, using 14-day and 60-day boundaries; null when the project was never edited. More values may be added; clients must tolerate unknown values.
+// WorkspaceInsightsProjectActivityGroup Last-edit recency, using 14-day and 60-day boundaries; older when the project was never edited. More values may be added; clients must tolerate unknown values.
 //
 // Example: last_14_days
 type WorkspaceInsightsProjectActivityGroup string
@@ -2971,13 +2971,13 @@ type ListSecurityInsightProjectsParams struct {
 	// Query Free-text search across project name and owner. Terms shorter than 3 characters are ignored. A full project ID matches that project exactly.
 	Query *string `form:"query,omitempty" json:"query,omitempty"`
 
-	// SortBy Sort field. Omit for the default order: most recently edited first, or best matches first when query is set. Ties break by project id unless noted. review_priority: unscored projects last in both directions, ties by risk score. name: projects without a name first ascending and last descending. publish_audience: ranks not published, then workspace, custom, public. last_edited_at: falls back to the last update time. risk_factor_count, open_pii_finding_count, external_access_rank: missing counts as 0, ties by name; external_access_rank ranks external collaborators above shared users, publicly published apps, then none; open_pii_finding_count returns 402 when personal data detection is not available on the workspace plan. edits_* and visitors_*: missing counts as 0. last_security_scan_at: never scanned last in both directions. relevance: requires query, ties by last update time.
+	// SortBy Sort field. Omit for the default order: most recently edited first, or best matches first when query is set. Ties break by project id unless noted. review_priority: unscored projects last in both directions, ties by risk score. name: projects without a name first ascending and last descending. publish_audience: ranks not published, then workspace, custom, public. last_edited_at: never-edited projects last descending and first ascending. risk_factor_count, open_pii_finding_count, external_access_rank: missing counts as 0, ties by name; external_access_rank ranks external collaborators above shared users, publicly published apps, then none; open_pii_finding_count returns 402 when personal data detection is not available on the workspace plan. edits_* and visitors_*: missing counts as 0. last_security_scan_at: never scanned last in both directions. relevance: requires query, ties by last update time.
 	SortBy *ListSecurityInsightProjectsParamsSortBy `form:"sort_by,omitempty" json:"sort_by,omitempty"`
 
 	// SortOrder Direction for sort_by. Defaults to descending. Requires sort_by.
 	SortOrder *ListSecurityInsightProjectsParamsSortOrder `form:"sort_order,omitempty" json:"sort_order,omitempty"`
 
-	// ActivityGroup Filter by the activity_group field: time since the last edit, or last update for projects never edited, using 14-day and 60-day boundaries. Repeat to match any value. Omit for no filter.
+	// ActivityGroup Filter by the activity_group field: time since the last edit, using 14-day and 60-day boundaries; never-edited projects are older. Repeat to match any value. Omit for no filter.
 	ActivityGroup *[]ListSecurityInsightProjectsParamsActivityGroup `form:"activity_group,omitempty" json:"activity_group,omitempty"`
 
 	// IsPublished Filter by whether the project is published. Omit for no filter.
@@ -3124,7 +3124,7 @@ type ClientInterface interface {
 	//
 	// **Scope:** `workspaces:read`
 	//
-	// Returns projects across the selected workspaces in one cursor-paginated list, sorted by last edited time descending then project ID ascending. Projects without a last edit use their update time for ordering; projects with neither sort last. Repeat workspace_id to select up to 10 workspaces. Every selected workspace must pass authorization; any failure rejects the whole request. Workspace-scoped API keys remain limited to their own workspace. Cursors are bound to the selected workspace set and filters. Reads are eventually consistent: recent changes may not appear immediately. Retry the read with backoff if an expected change is missing.
+	// Returns projects across the selected workspaces in one cursor-paginated list, sorted by last edited time descending then project ID ascending. Projects without a last edit sort last. Repeat workspace_id to select up to 10 workspaces. Every selected workspace must pass authorization; any failure rejects the whole request. Workspace-scoped API keys remain limited to their own workspace. Cursors are bound to the selected workspace set and filters. Reads are eventually consistent: recent changes may not appear immediately. Retry the read with backoff if an expected change is missing.
 	//
 	// Corresponds with GET /v1/projects (the `ListProjects` operationId).
 	ListProjects(ctx context.Context, params *ListProjectsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3487,7 +3487,7 @@ type ClientInterface interface {
 //
 // **Scope:** `workspaces:read`
 //
-// Returns projects across the selected workspaces in one cursor-paginated list, sorted by last edited time descending then project ID ascending. Projects without a last edit use their update time for ordering; projects with neither sort last. Repeat workspace_id to select up to 10 workspaces. Every selected workspace must pass authorization; any failure rejects the whole request. Workspace-scoped API keys remain limited to their own workspace. Cursors are bound to the selected workspace set and filters. Reads are eventually consistent: recent changes may not appear immediately. Retry the read with backoff if an expected change is missing.
+// Returns projects across the selected workspaces in one cursor-paginated list, sorted by last edited time descending then project ID ascending. Projects without a last edit sort last. Repeat workspace_id to select up to 10 workspaces. Every selected workspace must pass authorization; any failure rejects the whole request. Workspace-scoped API keys remain limited to their own workspace. Cursors are bound to the selected workspace set and filters. Reads are eventually consistent: recent changes may not appear immediately. Retry the read with backoff if an expected change is missing.
 //
 // Corresponds with GET /v1/projects (the `ListProjects` operationId).
 func (c *Client) ListProjects(ctx context.Context, params *ListProjectsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -6653,7 +6653,7 @@ type ClientWithResponsesInterface interface {
 	//
 	// **Scope:** `workspaces:read`
 	//
-	// Returns projects across the selected workspaces in one cursor-paginated list, sorted by last edited time descending then project ID ascending. Projects without a last edit use their update time for ordering; projects with neither sort last. Repeat workspace_id to select up to 10 workspaces. Every selected workspace must pass authorization; any failure rejects the whole request. Workspace-scoped API keys remain limited to their own workspace. Cursors are bound to the selected workspace set and filters. Reads are eventually consistent: recent changes may not appear immediately. Retry the read with backoff if an expected change is missing.
+	// Returns projects across the selected workspaces in one cursor-paginated list, sorted by last edited time descending then project ID ascending. Projects without a last edit sort last. Repeat workspace_id to select up to 10 workspaces. Every selected workspace must pass authorization; any failure rejects the whole request. Workspace-scoped API keys remain limited to their own workspace. Cursors are bound to the selected workspace set and filters. Reads are eventually consistent: recent changes may not appear immediately. Retry the read with backoff if an expected change is missing.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -13214,7 +13214,7 @@ func (r ListSecurityInsightProjectsResponse) ContentType() string {
 //
 // **Scope:** `workspaces:read`
 //
-// Returns projects across the selected workspaces in one cursor-paginated list, sorted by last edited time descending then project ID ascending. Projects without a last edit use their update time for ordering; projects with neither sort last. Repeat workspace_id to select up to 10 workspaces. Every selected workspace must pass authorization; any failure rejects the whole request. Workspace-scoped API keys remain limited to their own workspace. Cursors are bound to the selected workspace set and filters. Reads are eventually consistent: recent changes may not appear immediately. Retry the read with backoff if an expected change is missing.
+// Returns projects across the selected workspaces in one cursor-paginated list, sorted by last edited time descending then project ID ascending. Projects without a last edit sort last. Repeat workspace_id to select up to 10 workspaces. Every selected workspace must pass authorization; any failure rejects the whole request. Workspace-scoped API keys remain limited to their own workspace. Cursors are bound to the selected workspace set and filters. Reads are eventually consistent: recent changes may not appear immediately. Retry the read with backoff if an expected change is missing.
 //
 // Returns a wrapper object for the known response body format(s).
 //

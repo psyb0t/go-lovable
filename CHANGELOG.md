@@ -2,6 +2,12 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v0.3.2, 2026-11-26
+
+- Documentation only. The comments on `WorkspaceInsightsProject.ActivityGroup` and the `WorkspaceInsightsProjectActivityGroup` type now say that a project that was never edited is `older`, not null.
+- Updated the `ListSecurityInsightProjectsParams` comments. `ActivityGroup` now describes the time since the last edit, and says never-edited projects are older. `SortBy` now says `last_edited_at` puts never-edited projects last when descending and first when ascending.
+- Updated the documentation on `ListProjects`, `ListProjectsWithResponse` and the matching `ClientInterface` and `ClientWithResponsesInterface` methods. Projects without a last edit now sort last, instead of falling back to their update time.
+
 ## v0.3.1, 2026-11-20
 
 - Updated the documentation on `UpdatePublishSettings`, `UpdatePublishSettingsWithBody`, `UpdatePublishSettingsWithResponse` and `UpdatePublishSettingsWithBodyWithResponse`, and on the matching `ClientInterface` and `ClientWithResponsesInterface` methods. A published app gets the same checks as publishing. Making it public can fail with 400 `security_critical_findings` or `pii_findings_unresolved`. Making it private can fail with 400 `app_mcp_unauthenticated_private`.
